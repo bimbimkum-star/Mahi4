@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ऑडियो खाताबुक प्रो</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- मुख्य ऐप रैपर -->
+  <div class="app-container no-print">
+    
+    <!-- शीर्ष पट्टी -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">🎙️</div>
+        <div>
+          <h1>खाताबुक प्रो</h1>
+          <p class="subtitle">स्मार्ट वॉयस लेज़र सिस्टम</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="exportCsvBtn" class="btn btn-secondary">📥 CSV एक्सपोर्ट</button>
+        <button id="openPrintModalBtn" class="btn btn-primary">🖨️ प्रिंट रसीद / लेज़र</button>
+      </div>
+    </header>
+
+    <!-- वित्तीय समरी डैशबोर्ड -->
+    <section class="summary-grid">
+      <div class="summary-card in">
+        <div class="card-icon">↗️</div>
+        <div>
+          <span class="label">कुल जमा (लेना है)</span>
+          <h2 id="totalInDisplay">₹0</h2>
+        </div>
+      </div>
+      <div class="summary-card out">
+        <div class="card-icon">↘️</div>
+        <div>
+          <span class="label">कुल उधार (देना है)</span>
+          <h2 id="totalOutDisplay">₹0</h2>
+        </div>
+      </div>
+      <div class="summary-card balance">
+        <div class="card-icon">⚖️</div>
+        <div>
+          <span class="label">नेट बैलेंस (शुद्ध स्थिति)</span>
+          <h2 id="netBalanceDisplay">₹0</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- वॉयस कमांड और साउंडवेव सेक्शन -->
+    <section class="voice-card">
+      <div class="voice-header">
+        <h3>स्मार्ट वॉयस असिस्टेंट</h3>
+        <span class="voice-badge">हिंदी / Hinglish</span>
+      </div>
+
+      <!-- विजुअल साउंडवेव एनिमेशन -->
+      <div class="soundwave-container" id="soundwaveBox">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </div>
+
+      <div class="mic-trigger-box">
+        <button id="micBtn" class="mic-action-btn">
+          <span class="mic-pulse"></span>
+          <span class="icon">🎙️</span>
+          <span id="micStatusText">माइक चालू करने के लिए दबाएं</span>
+        </button>
+      </div>
+
+      <div class="transcript-display" id="transcriptDisplay">
+        सुना गया कमांड यहाँ दिखेगा...
+      </div>
+
+      <div class="voice-hints">
+        <strong>बोलने के तरीके:</strong>
+        <span class="hint">"राजू से 500 मिले"</span>
+        <span class="hint">"अमित को 1200 दिए"</span>
+        <span class="hint">"राजू का बकाया कितना है?"</span>
+      </div>
+    </section>
+
+    <!-- त्वरित मैन्युअल प्रविष्टि (Quick Manual Entry) -->
+    <section class="manual-entry-card">
+      <h3>मैन्युअल एंट्री जोड़ें</h3>
+      <form id="addEntryForm" class="entry-form">
+        <div class="form-control">
+          <label>ग्राहक का नाम</label>
+          <input type="text" id="manualName" placeholder="उदा. रमेश कुमार" required autocomplete="off">
+        </div>
+        <div class="form-control">
+          <label>राशि (₹)</label>
+          <input type="number" id="manualAmount" placeholder="उदा. 500" min="1" step="any" required>
+        </div>
+        <div class="form-control">
+          <label>प्रकार</label>
+          <select id="manualType">
+            <option value="IN">मिला / जमा (IN)</option>
+            <option value="OUT">दिया / उधार (OUT)</option>
+          </select>
+        </div>
+        <div class="form-control">
+          <label>तारीख व समय</label>
+          <input type="datetime-local" id="manualDateTime" required>
+        </div>
+        <div class="form-control form-btn-wrap">
+          <button type="submit" class="btn btn-success w-100">सहेजें (Save)</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- सर्च, फिल्टर और लेज़र तालिका -->
+    <section class="ledger-card">
+      <div class="ledger-toolbar">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="ग्राहक का नाम खोजें...">
+        </div>
+        <div class="filter-box">
+          <select id="filterType">
+            <option value="ALL">सभी लेन-देन</option>
+            <option value="IN">केवल जमा (IN)</option>
+            <option value="OUT">केवल उधार (OUT)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>तारीख और समय</th>
+              <th>ग्राहक</th>
+              <th>प्रकार</th>
+              <th>राशि</th>
+              <th class="text-right">क्रियाएँ (Actions)</th>
+            </tr>
+          </thead>
+          <tbody id="ledgerBody">
+            <!-- डायनामिक डेटा लोड होगा -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- एडिट मोडल (Edit Entry Modal) -->
+  <div class="modal-backdrop" id="editModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>लेन-देन में सुधार करें</h3>
+        <button class="close-modal-btn" id="closeEditModal">&times;</button>
+      </div>
+      <form id="editEntryForm">
+        <input type="hidden" id="editEntryId">
+        <div class="form-control">
+          <label>ग्राहक का नाम</label>
+          <input type="text" id="editName" required>
+        </div>
+        <div class="form-control">
+          <label>राशि (₹)</label>
+          <input type="number" id="editAmount" min="1" step="any" required>
+        </div>
+        <div class="form-control">
+          <label>प्रकार</label>
+          <select id="editType">
+            <option value="IN">मिला / जमा (IN)</option>
+            <option value="OUT">दिया / उधार (OUT)</option>
+          </select>
+        </div>
+        <div class="form-control">
+          <label>तारीख और समय</label>
+          <input type="datetime-local" id="editDateTime" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelEditBtn">रद्द करें</button>
+          <button type="submit" class="btn btn-primary">अपडेट करें</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- प्रिंट सेटअप मोडल -->
+  <div class="modal-backdrop" id="printChoiceModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>प्रिंट सेटअप विकल्प</h3>
+        <button class="close-modal-btn" id="closePrintModal">&times;</button>
+      </div>
+      <div class="print-dialog-body">
+        <div class="form-control">
+          <label>ग्राहक चुनें (खाली छोड़ने पर सभी का प्रिंट होगा):</label>
+          <select id="printCustomerFilter">
+            <option value="ALL">-- सभी ग्राहक (Full Ledger) --</option>
+          </select>
+        </div>
+        <div class="print-buttons-choice">
+          <button class="btn btn-primary" id="triggerPrintA4">
+            📄 A4 लेज़र स्टेटमेंट प्रिंट
+          </button>
+          <button class="btn btn-secondary" id="triggerPrintRoll">
+            🧾 80mm थर्मल रोल रसीद प्रिंट
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- प्रिंट के लिए लेआउट (स्क्रीन पर छिपा रहेगा, प्रिंट के समय सक्रिय होगा) -->
+  <div id="printArea" class="print-only"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
