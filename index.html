@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ऑडियो खाताबुक प्रो</title>
+
+  <!-- ========================================== -->
+  <!-- भाग 1: संपूर्ण CSS (स्टाइलिंग और प्रिंट सेटअप) -->
+  <!-- ========================================== -->
+  <style>
+    :root {
+      --bg-body: #0f172a;
+      --bg-card: #1e293b;
+      --bg-input: #0f172a;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.15);
+      --red: #f43f5e;
+      --red-bg: rgba(244, 63, 94, 0.15);
+      --blue: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text);
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 950px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* शीर्ष पट्टी */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 22px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* बटन शैलियाँ */
+    .btn {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-blue { background: var(--blue); color: #fff; }
+    .btn-green { background: var(--green); color: #000; }
+    .btn-gray { background: var(--bg-card); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: var(--red); color: #fff; }
+
+    /* समरी कार्ड्स */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      border-radius: 10px;
+    }
+    .card span { font-size: 12px; color: var(--text-muted); font-weight: bold; text-transform: uppercase; }
+    .card h2 { font-size: 22px; margin-top: 4px; }
+    .card.in h2 { color: var(--green); }
+    .card.out h2 { color: var(--red); }
+    .card.balance h2 { color: var(--blue); }
+
+    /* वॉयस सेक्शन */
+    .voice-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .mic-btn {
+      background: #1e293b;
+      border: 2px solid var(--blue);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mic-btn.active {
+      border-color: var(--red);
+      background: var(--red-bg);
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+
+    .voice-status {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      min-height: 18px;
+    }
+
+    .voice-tags {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      font-size: 11px;
+    }
+    .voice-tags span {
+      background: var(--bg-input);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+    }
+
+    /* फॉर्म और इनपुट्स */
+    .form-box, .table-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .entry-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      align-items: flex-end;
+      margin-top: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    input, select {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 9px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+      width: 100%;
+    }
+    input:focus, select:focus { border-color: var(--blue); }
+
+    /* टेबल और सर्च */
+    .table-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    th { color: var(--text-muted); font-size: 11px; text-transform: uppercase; }
+
+    .tag-in { color: var(--green); font-weight: bold; }
+    .tag-out { color: var(--red); font-weight: bold; }
+
+    .actions-wrap {
+      display: flex;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+
+    .btn-action {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .btn-action:hover { background: #334155; }
+    .btn-wa:hover { border-color: #25d366; color: #25d366; }
+
+    /* मोडल (एडिट व प्रिंट) */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal.show { display: flex; }
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .modal-header span { cursor: pointer; font-size: 18px; }
+
+    /* ========================================== */
+    /* प्रिंट स्टाइल (A4 और 80mm थर्मल रोल) */
+    /* ========================================== */
+    #printOutput { display: none; }
+
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+        padding: 0 !important;
+      }
+      .no-print { display: none !important; }
+      #printOutput { display: block !important; }
+
+      /* A4 प्रिंट स्टाइल */
+      body.mode-a4 {
+        margin: 12mm;
+      }
+      body.mode-a4 table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      body.mode-a4 th, body.mode-a4 td {
+        border: 1px solid #999;
+        padding: 6px 8px;
+        color: #000;
+        font-size: 12px;
+      }
+      body.mode-a4 th { background: #eee; }
+
+      /* 80mm थर्मल रोल स्टाइल */
+      body.mode-roll {
+        width: 76mm !important;
+        margin: 0 auto !important;
+        font-family: monospace, sans-serif !important;
+      }
+      body.mode-roll .thermal-box {
+        width: 100%;
+        font-size: 11px;
+        padding: 4px;
+      }
+      body.mode-roll table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 6px;
+      }
+      body.mode-roll th, body.mode-roll td {
+        border-bottom: 1px dashed #000;
+        padding: 4px 0;
+        font-size: 10px;
+        color: #000;
+      }
+      body.mode-roll .center { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================== -->
+  <!-- भाग 2: संपूर्ण HTML ढाँचा (UI & Modals) -->
+  <!-- ========================================== -->
+  <div class="container no-print">
+    
+    <header>
+      <h1>🎙️ ऑडियो खाताबुक</h1>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-gray" onclick="exportDataCSV()">📥 CSV एक्सपोर्ट</button>
+        <button class="btn btn-blue" onclick="openPrintModal()">🖨️ प्रिंट रसीद / लेज़र</button>
+      </div>
+    </header>
+
+    <!-- समरी कार्ड्स -->
+    <div class="summary-grid">
+      <div class="card in">
+        <span>कुल मिला (जमा)</span>
+        <h2 id="sumIn">₹0</h2>
+      </div>
+      <div class="card out">
+        <span>कुल दिया (उधार)</span>
+        <h2 id="sumOut">₹0</h2>
+      </div>
+      <div class="card balance">
+        <span>शुद्ध बैलेंस (Net)</span>
+        <h2 id="sumBalance">₹0</h2>
+      </div>
+    </div>
+
+    <!-- वॉयस कंट्रोल सेक्शन -->
+    <div class="voice-box">
+      <button id="micBtn" class="mic-btn" onclick="toggleVoice()">
+        <span id="micIcon">🎤</span>
+        <span id="micText">बोलने के लिए माइक दबाएं</span>
+      </button>
+      <div class="voice-status" id="voiceStatus">आवाज़ सुनने के लिए माइक बटन पर क्लिक करें...</div>
+      <div class="voice-tags">
+        <span>"सुरेश को 400 दिए"</span>
+        <span>"रमेश से 800 मिले"</span>
+        <span>"सुरेश का बकाया कितना है?"</span>
+      </div>
+    </div>
+
+    <!-- मैन्युअल एंट्री फॉर्म -->
+    <div class="form-box">
+      <h3 style="font-size:15px; margin-bottom:6px;">खाते में नई एंट्री लिखें</h3>
+      <form id="khataForm" class="entry-form" onsubmit="handleFormSubmit(event)">
+        <div class="form-group">
+          <label>ग्राहक का नाम</label>
+          <input type="text" id="custName" placeholder="नाम लिखें" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>राशि (₹)</label>
+          <input type="number" id="custAmount" placeholder="रुपये" min="1" step="any" required>
+        </div>
+        <div class="form-group">
+          <label>प्रकार</label>
+          <select id="custType">
+            <option value="IN">मिला / जमा (IN)</option>
+            <option value="OUT">दिया / उधार (OUT)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>दिनांक व समय</label>
+          <input type="datetime-local" id="custDateTime" required>
+        </div>
+        <div class="form-group">
+          <button type="submit" class="btn btn-green" style="width:100%; height:38px; justify-content:center;">➕ सेव करें</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- लेज़र टेबल सेक्शन -->
+    <div class="table-box">
+      <div class="table-top">
+        <input type="text" id="searchBar" placeholder="नाम से खोजें..." oninput="renderTable()" style="max-width:220px;">
+        <select id="filterType" onchange="renderTable()" style="max-width:180px;">
+          <option value="ALL">सभी लेन-देन</option>
+          <option value="IN">केवल जमा (IN)</option>
+          <option value="OUT">केवल उधार (OUT)</option>
+        </select>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>तारीख / समय</th>
+              <th>ग्राहक</th>
+              <th>प्रकार</th>
+              <th>राशि</th>
+              <th style="text-align:right;">ऑप्शन्स</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- डायनामिक पंक्तियाँ -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- एडिट मोडल -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>एंट्री में सुधार (Edit)</h3>
+        <span onclick="closeEditModal()">&times;</span>
+      </div>
+      <form onsubmit="handleEditSubmit(event)">
+        <input type="hidden" id="editId">
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>ग्राहक का नाम</label>
+          <input type="text" id="editName" required>
+        </div>
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>राशि (₹)</label>
+          <input type="number" id="editAmount" min="1" step="any" required>
+        </div>
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>प्रकार</label>
+          <select id="editType">
+            <option value="IN">मिला / जमा (IN)</option>
+            <option value="OUT">दिया / उधार (OUT)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>तारीख और समय</label>
+          <input type="datetime-local" id="editDateTime" required>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <button type="button" class="btn btn-gray" onclick="closeEditModal()">रद्द करें</button>
+          <button type="submit" class="btn btn-blue">अपडेट करें</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- प्रिंट मोडल -->
+  <div class="modal" id="printModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>प्रिंट सेटअप</h3>
+        <span onclick="closePrintModal()">&times;</span>
+      </div>
+      <div class="form-group">
+        <label>ग्राहक चुनें:</label>
+        <select id="printCustomerSelect">
+          <option value="ALL">-- सभी ग्राहक (Full Ledger) --</option>
+        </select>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+        <button class="btn btn-blue" onclick="runPrint('A4')">📄 A4 लेज़र स्टेटमेंट प्रिंट</button>
+        <button class="btn btn-gray" onclick="runPrint('ROLL')">🧾 80mm रोल स्लिप प्रिंट</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- प्रिंट आउटपुट कंटेनर -->
+  <div id="printOutput"></div>
+
+
+  <!-- ========================================== -->
+  <!-- भाग 3: संपूर्ण जावास्क्रिप्ट (सभी फीचर्स) -->
+  <!-- ========================================== -->
+  <script>
+    // 1. स्टेट और लोकल स्टोरेज
+    let db = [];
+    try {
+      const saved = localStorage.getItem('MY_KHATABOOK_DATA');
+      if (saved) db = JSON.parse(saved);
+    } catch(e) {
+      console.error("Storage error:", e);
+      db = [];
+    }
+
+    // ऑटो इनपुट में वर्तमान समय भरना
+    function initDateTime() {
+      const now = new Date();
+      const tzOffset = now.getTimezoneOffset() * 60000;
+      const localISO = new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
+      document.getElementById('custDateTime').value = localISO;
+    }
+
+    // डेटा सेव करना
+    function persistData() {
+      localStorage.setItem('MY_KHATABOOK_DATA', JSON.stringify(db));
+      renderTable();
+      updateSummary();
+    }
+
+    // 2. एंट्री जोड़ना (Add Transaction)
+    function addEntry(name, amount, type, dateString) {
+      const newRecord = {
+        id: 'TX_' + Date.now() + Math.floor(Math.random()*100),
+        name: name.trim(),
+        amount: parseFloat(amount),
+        type: type,
+        timestamp: dateString || new Date().toISOString()
+      };
+      db.unshift(newRecord);
+      persistData();
+    }
+
+    // मैन्युअल फॉर्म हैंडलर
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('custName').value;
+      const amt = document.getElementById('custAmount').value;
+      const typ = document.getElementById('custType').value;
+      const dt = new Date(document.getElementById('custDateTime').value).toISOString();
+
+      addEntry(name, amt, typ, dt);
+
+      // फॉर्म रीसेट
+      document.getElementById('custName').value = '';
+      document.getElementById('custAmount').value = '';
+      initDateTime();
+      speakText(`${name} की प्रविष्टि दर्ज हो गई है।`);
+    }
+
+    // 3. टेबल और समरी रेंडरिंग
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      const search = (document.getElementById('searchBar').value || '').toLowerCase().trim();
+      const filter = document.getElementById('filterType').value;
+
+      tbody.innerHTML = '';
+
+      const filtered = db.filter(item => {
+        const matchesName = item.name.toLowerCase().includes(search);
+        const matchesType = (filter === 'ALL') || (item.type === filter);
+        return matchesName && matchesType;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">कोई लेन-देन नहीं मिला</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const tr = document.createElement('tr');
+        const isIncome = item.type === 'IN';
+        const d = new Date(item.timestamp);
+        const dateFormatted = d.toLocaleDateString('hi-IN', { day:'2-digit', month:'short' }) + ' ' + d.toLocaleTimeString('hi-IN', { hour:'2-digit', minute:'2-digit' });
+
+        tr.innerHTML = `
+          <td>${dateFormatted}</td>
+          <td><strong>${escapeHtml(item.name)}</strong></td>
+          <td class="${isIncome ? 'tag-in' : 'tag-out'}">${isIncome ? 'जमा (IN)' : 'उधार (OUT)'}</td>
+          <td class="${isIncome ? 'tag-in' : 'tag-out'}">₹${item.amount.toLocaleString('en-IN')}</td>
+          <td>
+            <div class="actions-wrap">
+              ${!isIncome ? `<button class="btn-action btn-wa" onclick="sendWhatsApp('${escapeHtml(item.name)}',${item.amount})" title="रिमाइंडर भेजें">💬 WhatsApp</button>` : ''}
+              <button class="btn-action" onclick="openEditModal('${item.id}')" title="सुधारें">✏️ एडिट</button>
+              <button class="btn-action" onclick="deleteEntry('${item.id}')" title="हटाएं">🗑️</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateSummary() {
+      let inSum = 0;
+      let outSum = 0;
+      db.forEach(t => {
+        if (t.type === 'IN') inSum += t.amount;
+        else outSum += t.amount;
+      });
+
+      document.getElementById('sumIn').innerText = '₹' + inSum.toLocaleString('en-IN');
+      document.getElementById('sumOut').innerText = '₹' + outSum.toLocaleString('en-IN');
+      document.getElementById('sumBalance').innerText = '₹' + (inSum - outSum).toLocaleString('en-IN');
+    }
+
+    // 4. डिलीट और एडिट
+    function deleteEntry(id) {
+      if (confirm('क्या आप सच में इस एंट्री को मिटाना चाहते हैं?')) {
+        db = db.filter(item => item.id !== id);
+        persistData();
+      }
+    }
+
+    function openEditModal(id) {
+      const item = db.find(t => t.id === id);
+      if (!item) return;
+
+      document.getElementById('editId').value = item.id;
+      document.getElementById('editName').value = item.name;
+      document.getElementById('editAmount').value = item.amount;
+      document.getElementById('editType').value = item.type;
+
+      const d = new Date(item.timestamp);
+      const tzOffset = d.getTimezoneOffset() * 60000;
+      document.getElementById('editDateTime').value = new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+
+      document.getElementById('editModal').classList.add('show');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('show');
+    }
+
+    function handleEditSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;
+      const item = db.find(t => t.id === id);
+      if (item) {
+        item.name = document.getElementById('editName').value.trim();
+        item.amount = parseFloat(document.getElementById('editAmount').value);
+        item.type = document.getElementById('editType').value;
+        item.timestamp = new Date(document.getElementById('editDateTime').value).toISOString();
+        persistData();
+        closeEditModal();
+        speakText('एंट्री अपडेट कर दी गई है।');
+      }
+    }
+
+    // 5. WhatsApp पेमेंट रिमाइंडर
+    function sendWhatsApp(name, amount) {
+      const text = `नमस्ते ${name} जी, आपके खाताबुक में ₹${amount.toLocaleString('en-IN')} का बकाया शेष है। कृपया समय पर भुगतान करने का कष्ट करें।`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    // 6. वॉयस इंजन (Speech-to-Text & Assistant)
+    let recognition = null;
+    let isListening = false;
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRec) {
+      recognition = new SpeechRec();
+      recognition.lang = 'hi-IN';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isListening = true;
+        document.getElementById('micBtn').classList.add('active');
+        document.getElementById('micText').innerText = 'सुन रहा हूँ... बोलिए';
+        document.getElementById('voiceStatus').innerText = 'माइक चालू है, अपनी बात कहें...';
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        document.getElementById('micBtn').classList.remove('active');
+        document.getElementById('micText').innerText = 'बोलने के लिए माइक दबाएं';
+      };
+
+      recognition.onerror = () => {
+        document.getElementById('voiceStatus').innerText = 'आवाज़ साफ नहीं आई, कृपया दोबारा बोलें।';
+      };
+
+      recognition.onresult = (evt) => {
+        const spoken = evt.results[0][0].transcript;
+        document.getElementById('voiceStatus').innerText = `सुना: "${spoken}"`;
+        handleVoiceCommand(spoken);
+      };
+    }
+
+    function toggleVoice() {
+      if (!recognition) {
+        alert('आपके ब्राउज़र में वॉयस सपोर्ट नहीं है। कृपया Google Chrome प्रयोग करें।');
+        return;
+      }
+      if (isListening) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    }
+
+    function handleVoiceCommand(rawText) {
+      const text = rawText.toLowerCase();
+
+      // (A) क्या यह बैलेंस पूछने का सवाल है?
+      if (text.includes('बकाया') || text.includes('हिसाब') || text.includes('कितना') || text.includes('बाकी')) {
+        let matchedCustomer = null;
+        for (let item of db) {
+          if (text.includes(item.name.toLowerCase())) {
+            matchedCustomer = item.name;
+            break;
+          }
+        }
+
+        if (matchedCustomer) {
+          let balance = 0;
+          db.filter(t => t.name.toLowerCase() === matchedCustomer.toLowerCase()).forEach(t => {
+            if (t.type === 'OUT') balance += t.amount;
+            else balance -= t.amount;
+          });
+
+          if (balance > 0) speakText(`${matchedCustomer} के यहाँ कुल ${balance} रुपये बाकी हैं।`);
+          else if (balance < 0) speakText(`${matchedCustomer} का ${Math.abs(balance)} रुपये जमा है।`);
+          else speakText(`${matchedCustomer} का हिसाब बराबर है।`);
+        } else {
+          speakText('ग्राहक का नाम समझ नहीं आया।');
+        }
+        return;
+      }
+
+      // (B) नया लेन-देन दर्ज करना
+      const digits = text.match(/\d+/g);
+      if (!digits) {
+        speakText('रुपये समझ नहीं आए। कृपया दोबारा बोलें।');
+        return;
+      }
+      const amount = parseFloat(digits[0]);
+
+      let type = 'IN';
+      const outWords = ['दिया', 'दिए', 'भेजा', 'भेजे', 'उधार दिया', 'पे किया'];
+      if (outWords.some(w => text.includes(w))) type = 'OUT';
+
+      let name = 'ग्राहक';
+      const namePart = text.match(/(.*?)(?:को|से|ने)/);
+      if (namePart && namePart[1]) {
+        name = namePart[1].replace(/\d+/g, '').replace(/रुपये|रुपया|रू/g, '').trim();
+      }
+
+      addEntry(name, amount, type, new Date().toISOString());
+      speakText(`${name} के खाते में ${amount} रुपये ${type === 'IN' ? 'जमा' : 'उधार'} दर्ज हो गए हैं।`);
+    }
+
+    function speakText(txt) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(txt);
+        u.lang = 'hi-IN';
+        window.speechSynthesis.speak(u);
+      }
+    }
+
+    // 7. प्रिंट इंजन (A4 और 80mm रोल स्लिप)
+    function openPrintModal() {
+      const select = document.getElementById('printCustomerSelect');
+      select.innerHTML = '<option value="ALL">-- सभी ग्राहक (Full Ledger) --</option>';
+      const names = [...new Set(db.map(t => t.name))];
+      names.forEach(n => {
+        const opt = document.createElement('option');
+        opt.value = n;
+        opt.innerText = n;
+        select.appendChild(opt);
+      });
+      document.getElementById('printModal').classList.add('show');
+    }
+
+    function closePrintModal() {
+      document.getElementById('printModal').classList.remove('show');
+    }
+
+    function runPrint(mode) {
+      const select = document.getElementById('printCustomerSelect');
+      const target = select.value;
+      const dataToPrint = (target === 'ALL') ? db : db.filter(t => t.name === target);
+
+      if (dataToPrint.length === 0) {
+        alert('प्रिंट करने के लिए कोई लेन-देन नहीं है।');
+        return;
+      }
+
+      let inTotal = 0;
+      let outTotal = 0;
+      dataToPrint.forEach(t => {
+        if (t.type === 'IN') inTotal += t.amount;
+        else outTotal += t.amount;
+      });
+
+      const outDiv = document.getElementById('printOutput');
+      document.body.className = (mode === 'A4') ? 'mode-a4' : 'mode-roll';
+
+      if (mode === 'A4') {
+        let rows = dataToPrint.map(t => `
+          <tr>
+            <td>${new Date(t.timestamp).toLocaleString('hi-IN')}</td>
+            <td>${escapeHtml(t.name)}</td>
+            <td>${t.type === 'IN' ? 'जमा' : 'उधार'}</td>
+            <td style="text-align:right;">₹${t.amount.toFixed(2)}</td>
+          </tr>
+        `).join('');
+
+        outDiv.innerHTML = `
+          <h2>खाताबुक लेज़र विवरण</h2>
+          <p style="font-size:12px; margin: 4px 0 10px 0;">खाता: ${target === 'ALL' ? 'समस्त ग्राहक' : escapeHtml(target)} | दिनांक: ${new Date().toLocaleDateString('hi-IN')}</p>
+          <table>
+            <thead>
+              <tr><th>तारीख</th><th>ग्राहक</th><th>प्रकार</th><th style="text-align:right;">राशि</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <div style="margin-top:16px; text-align:right; font-size:13px;">
+            <p>कुल जमा: <strong>₹${inTotal.toFixed(2)}</strong></p>
+            <p>कुल उधार: <strong>₹${outTotal.toFixed(2)}</strong></p>
+            <p style="font-size:15px; margin-top:4px;">बैलेंस: <strong>₹${(inTotal - outTotal).toFixed(2)}</strong></p>
+          </div>
+        `;
+      } else {
+        // 80mm थर्मल स्लिप
+        let rows = dataToPrint.map(t => `
+          <tr>
+            <td>${new Date(t.timestamp).toLocaleDateString('hi-IN', {day:'2-digit', month:'2-digit'})} ${escapeHtml(t.name.slice(0,8))}</td>
+            <td>${t.type}</td>
+            <td style="text-align:right;">${t.amount}</td>
+          </tr>
+        `).join('');
+
+        outDiv.innerHTML = `
+          <div class="thermal-box">
+            <div class="center">
+              <h3 style="margin:0;">खाताबुक रसीद</h3>
+              <p>${target === 'ALL' ? 'समस्त खाता' : escapeHtml(target)}</p>
+              <p>${new Date().toLocaleDateString('hi-IN')}</p>
+            </div>
+            <table>
+              <thead>
+                <tr><th>विवरण</th><th>टाइप</th><th style="text-align:right;">राशि</th></tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+            <div style="margin-top:6px; font-size:10px;">
+              <div>जमा: ₹${inTotal}</div>
+              <div>उधार: ₹${outTotal}</div>
+              <div style="font-weight:bold; font-size:11px; margin-top:2px;">शुद्ध बाकी: ₹${inTotal - outTotal}</div>
+            </div>
+            <div class="center" style="margin-top:8px; font-size:9px;">** धन्यवाद **</div>
+          </div>
+        `;
+      }
+
+      closePrintModal();
+      window.print();
+    }
+
+    // 8. CSV डाउनलोड
+    function exportDataCSV() {
+      if (db.length === 0) {
+        alert('डाउनलोड के लिए कोई डेटा नहीं है।');
+        return;
+      }
+      let csv = 'ID,Date,Customer,Type,Amount\n';
+      db.forEach(t => {
+        csv += `"${t.id}","${t.timestamp}","${t.name}","${t.type}",${t.amount}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Khata_Backup_${Date.now()}.csv`;
+      link.click();
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[s]);
+    }
+
+    // पेज लोड इनिशियलाइजेशन
+    window.addEventListener('DOMContentLoaded', () => {
+      initDateTime();
+      persistData();
+    });
+  </script>
+</body>
+</html>
